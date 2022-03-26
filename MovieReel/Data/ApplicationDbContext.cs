@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MovieReel.Models.Database;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace MovieReel.Data
@@ -12,5 +14,7 @@ namespace MovieReel.Data
             : base(options)
         {
         }
+
+        public DbSet<Collection> Collection { get; set; }
     }
 }

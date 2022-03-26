@@ -7,7 +7,7 @@ namespace MovieReel.Models.Settings
 {
     public class AppSettings
     {
-        public MovieReelSettings MovieProSettings { get; set; }
+        public MovieReelSettings MovieReelSettings { get; set; }
         public TMDBSettings TMDBSettings { get; set; }
     }
 }

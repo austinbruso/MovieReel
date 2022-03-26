@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MovieReel.Services.Interfaces
 {
-    public interface IDataMapping
+    public interface IDataMappingService
     {
         Task<Movie> MapMovieDetailsAsync(MovieDetails movies);
         ActorDetails MapActorDetails(ActorDetails actor);
