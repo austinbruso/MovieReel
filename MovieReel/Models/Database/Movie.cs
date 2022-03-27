@@ -11,7 +11,7 @@ namespace MovieReel.Models.Database
 {
     public class Movie
     {
-        internal object cast;
+        internal object Cast;
 
         public int Id { get; set; }
         public int MovieId { get; set; }

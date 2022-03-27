@@ -208,6 +208,36 @@ namespace MovieReel.Controllers
         }
 
 
+        public async Task<IActionResult> Details(int? id, bool local = false)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            Movie movie = new();
+            if (local)
+            {
+                //Get the Movie data straight from the DB
+                movie = await _context.Movie.Include(m => m.Cast)
+                                            .Include(m => m.Crew)
+                                            .FirstOrDefaultAsync(m => m.Id == id);
+            } else
+            {
+                //Get the movie data from the TMDB Api
+                var moviewDetail = await _tmbdMovieService.MovieDetailAsync((int)id);
+                movie = await _tmdbMappingService.MapMovieDetailAsync(moviewDetail);
+            }
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            ViewData["Local"] = local;
+            return View(movie);
+        }
+
         private async Task AddToMovieCollection(int movieId, string collectionName)
         {
             var collection = await _context.Collection.FirstOrDefaultAsync(c => c.Name == collectionName);
