@@ -140,6 +140,20 @@ namespace MovieReel.Controllers
             {
                 try
                 {
+                    if (movie.PosterFile is not null)
+                    {
+                        movie.PosterType = movie.PosterFile.ContentType;
+                        movie.Poster = await _imageService.EncodeImageAsync(movie.PosterFile);
+
+                    }
+
+                    if(movie.BackdropFile is not null)
+                    {
+                        movie.BackdropType = movie.BackdropFile.ContentType;
+                        movie.Backdrop = await _imageService.EncodeImageAsync(movie.BackdropFile);
+
+                    }
+
                     _context.Update(movie);
                     await _context.SaveChangesAsync();
                 }
@@ -154,7 +168,7 @@ namespace MovieReel.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Movies", new { id = movie.Id, local = true });
             }
             return View(movie);
         }
@@ -185,7 +199,7 @@ namespace MovieReel.Controllers
             var movie = await _context.Movie.FindAsync(id);
             _context.Movie.Remove(movie);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Library", "Movies");
         }
 
         private bool MovieExists(int id)
