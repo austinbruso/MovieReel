@@ -2,13 +2,10 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using MovieProDemo.Services;
 using MovieReel.Data;
 using MovieReel.Models.Database;
 using MovieReel.Models.Settings;
 using MovieReel.Services.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,23 +13,23 @@ namespace MovieReel.Controllers
 {
     public class MoviesController : Controller
     {
-
         private readonly AppSettings _appSettings;
         private readonly ApplicationDbContext _context;
         private readonly IImageService _imageService;
-        private readonly IRemoteMovieService _tmbdMovieService;
+        private readonly IRemoteMovieService _tmdbMovieService;
         private readonly IDataMappingService _tmdbMappingService;
 
-        public MoviesController(IOptions<AppSettings> appSettings, ApplicationDbContext context, IImageService imageService, IRemoteMovieService tmbdMovieService, IDataMappingService tmdbMappingService)
+        public MoviesController(IOptions<AppSettings> appSettings, ApplicationDbContext context, IImageService imageService, IRemoteMovieService tmdbMovieService, IDataMappingService tmdbMappingService)
         {
             _appSettings = appSettings.Value;
             _context = context;
             _imageService = imageService;
-            _tmbdMovieService = tmbdMovieService;
+            _tmdbMovieService = tmdbMovieService;
             _tmdbMappingService = tmdbMappingService;
         }
 
-        public async Task <IActionResult> Import()
+        [HttpGet]
+        public async Task<IActionResult> Import()
         {
             var movies = await _context.Movie.ToListAsync();
             return View(movies);
@@ -40,51 +37,48 @@ namespace MovieReel.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task <IActionResult> Import(int id)
+        public async Task<IActionResult> Import(int id)
         {
-            // If movie already exists sends a warning alert
+            //If we already have this movie we can just warn the user instead of importing it again
             if (_context.Movie.Any(m => m.MovieId == id))
             {
                 var localMovie = await _context.Movie.FirstOrDefaultAsync(m => m.MovieId == id);
                 return RedirectToAction("Details", "Movies", new { id = localMovie.Id, local = true });
             }
 
-            // Step 1: Get the raw data from the API
-            var movieDetail = await _tmbdMovieService.MovieDetailAsync(id);
+            //Step 1: Get the raw data from the API
+            var movieDetail = await _tmdbMovieService.MovieDetailAsync(id);
 
-            // Step 2: Run the data through a mapping procedure 
+            //Step 2: Run the data through a mapping procedure
             var movie = await _tmdbMappingService.MapMovieDetailAsync(movieDetail);
 
             //Step 3: Add the new movie
             _context.Add(movie);
             await _context.SaveChangesAsync();
 
-            //Step 4: Assign it to the default all collection
+            //Step 4: Assign it to the default All Collection
             await AddToMovieCollection(movie.Id, _appSettings.MovieReelSettings.DefaultCollection.Name);
 
             return RedirectToAction("Import");
 
         }
 
+        [HttpGet]
         public async Task<IActionResult> Library()
         {
             var movies = await _context.Movie.ToListAsync();
             return View(movies);
         }
 
-
-
-        // GET: Temp/Create
+        // GET: Movies/Create
+        [HttpGet]
         public IActionResult Create()
         {
-
             ViewData["CollectionId"] = new SelectList(_context.Collection, "Id", "Name");
             return View();
         }
 
-        // POST: Temp/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Movies/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,MovieId,Title,TagLine,Overview,RunTime,ReleaseDate,Rating,VoteAverage,Poster,PosterType,Backdrop,BackdropType,TrailerUrl")] Movie movie, int collectionId)
@@ -100,7 +94,6 @@ namespace MovieReel.Controllers
                 _context.Add(movie);
                 await _context.SaveChangesAsync();
 
-
                 await AddToMovieCollection(movie.Id, collectionId);
 
                 return RedirectToAction("Index", "MovieCollections");
@@ -108,7 +101,8 @@ namespace MovieReel.Controllers
             return View(movie);
         }
 
-        // GET: Temp/Edit/5
+        // GET: Movies/Edit/5
+        [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -124,9 +118,7 @@ namespace MovieReel.Controllers
             return View(movie);
         }
 
-        // POST: Temp/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Movies/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,MovieId,Title,TagLine,Overview,RunTime,ReleaseDate,Rating,VoteAverage,Poster,PosterType,Backdrop,BackdropType,TrailerUrl")] Movie movie)
@@ -144,14 +136,11 @@ namespace MovieReel.Controllers
                     {
                         movie.PosterType = movie.PosterFile.ContentType;
                         movie.Poster = await _imageService.EncodeImageAsync(movie.PosterFile);
-
                     }
-
-                    if(movie.BackdropFile is not null)
+                    if (movie.BackdropFile is not null)
                     {
                         movie.BackdropType = movie.BackdropFile.ContentType;
                         movie.Backdrop = await _imageService.EncodeImageAsync(movie.BackdropFile);
-
                     }
 
                     _context.Update(movie);
@@ -173,7 +162,8 @@ namespace MovieReel.Controllers
             return View(movie);
         }
 
-        // GET: Temp/Delete/5
+        // GET: Movies/Delete/5
+        [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -191,7 +181,7 @@ namespace MovieReel.Controllers
             return View(movie);
         }
 
-        // POST: Temp/Delete/5
+        // POST: Movies/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -207,7 +197,7 @@ namespace MovieReel.Controllers
             return _context.Movie.Any(e => e.Id == id);
         }
 
-
+        [HttpGet]
         public async Task<IActionResult> Details(int? id, bool local = false)
         {
             if (id == null)
@@ -222,11 +212,12 @@ namespace MovieReel.Controllers
                 movie = await _context.Movie.Include(m => m.Cast)
                                             .Include(m => m.Crew)
                                             .FirstOrDefaultAsync(m => m.Id == id);
-            } else
+            }
+            else
             {
-                //Get the movie data from the TMDB Api
-                var moviewDetail = await _tmbdMovieService.MovieDetailAsync((int)id);
-                movie = await _tmdbMappingService.MapMovieDetailAsync(moviewDetail);
+                //Get the movie data from the TMDB API
+                var movieDetail = await _tmdbMovieService.MovieDetailAsync((int)id);
+                movie = await _tmdbMappingService.MapMovieDetailAsync(movieDetail);
             }
 
             if (movie == null)
@@ -236,6 +227,7 @@ namespace MovieReel.Controllers
 
             ViewData["Local"] = local;
             return View(movie);
+
         }
 
         private async Task AddToMovieCollection(int movieId, string collectionName)
@@ -245,28 +237,21 @@ namespace MovieReel.Controllers
                 new MovieCollection()
                 {
                     CollectionId = collection.Id,
-                    MovieId = movieId
+                    MovieId = movieId,
                 }
-                );
+            );
             await _context.SaveChangesAsync();
-
-
         }
-
         private async Task AddToMovieCollection(int movieId, int collectionId)
         {
-            
             _context.Add(
                 new MovieCollection()
                 {
                     CollectionId = collectionId,
                     MovieId = movieId
                 }
-                );
+            );
             await _context.SaveChangesAsync();
-
-
         }
-
     }
 }

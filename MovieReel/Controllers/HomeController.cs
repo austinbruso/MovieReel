@@ -5,7 +5,7 @@ using MovieReel.Data;
 using MovieReel.Enums;
 using MovieReel.Models;
 using MovieReel.Services.Interfaces;
-using MovieReel.ViewModel;
+using MovieReel.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
