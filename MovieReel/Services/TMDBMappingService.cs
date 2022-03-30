@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MovieProDemo.Services
+namespace MovieReel.Services
 {
     public class TMDBMappingService : IDataMappingService
     {
@@ -55,7 +55,7 @@ namespace MovieProDemo.Services
 
                 castMembers.ForEach(member =>
                 {
-                    newMovie.Casts.Add(new MovieCast()
+                    newMovie.Cast.Add(new MovieCast()
                     {
                         CastID = member.id,
                         Department = member.known_for_department,
@@ -168,15 +168,10 @@ namespace MovieProDemo.Services
 
             return $"{_appSettings.TMDBSettings.BaseImagePath}/{_appSettings.MovieReelSettings.DefaultPosterSize}/{profilePath}";
         }
-
-        public Task<Movie> MapMovieDetailsAsync(MovieDetails movies)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ActorDetails MapActorDetails(ActorDetails actor)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
+ 
+
+    
+
+

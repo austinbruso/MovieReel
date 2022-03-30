@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MovieReel.Models.TMDB;
 
 namespace MovieReel.Controllers
 {
@@ -21,10 +22,10 @@ namespace MovieReel.Controllers
         }
 
         
-        public async Task< IActionResult> Detail(int id)
+        public async Task< IActionResult> Details(int id)
         {
             var actor = await _tmbdMovieService.ActorDetailAsync(id);
-            actor = _mappingService.MapActorDetails(actor);
+            actor = _mappingService.MapActorDetail(actor);
 
             return View(actor);
         }

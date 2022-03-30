@@ -10,7 +10,7 @@ namespace MovieReel.Services.Interfaces
     public interface IDataMappingService
     {
         Task<Movie> MapMovieDetailAsync(MovieDetails movies);
-        ActorDetails MapActorDetails(ActorDetails actor);
+        ActorDetails MapActorDetail(ActorDetails actor);
 
     }
 }

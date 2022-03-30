@@ -11,8 +11,7 @@ namespace MovieReel.Models.Database
 {
     public class Movie
     {
-        internal object Cast;
-
+      
         public int Id { get; set; }
         public int MovieId { get; set; }
 
@@ -47,7 +46,7 @@ namespace MovieReel.Models.Database
 
         public ICollection<MovieCollection> Collections { get; set; } = new HashSet<MovieCollection>();
         public ICollection<MovieCrew> Crew { get; set; } = new HashSet<MovieCrew>();
-        public ICollection<MovieCast> Casts { get; set; } = new HashSet<MovieCast>();
+        public ICollection<MovieCast> Cast { get; set; } = new HashSet<MovieCast>();
 
 
     }
